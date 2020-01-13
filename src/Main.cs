@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System;
 using OsmSharp.Streams;
@@ -6,6 +7,8 @@ using System.Linq;
 using OsmSharp.Complete;
 using OsmSharp;
 using Nixill.Collections.Grid;
+using Nixill.Collections.Grid.CSV;
+using Nixill.GTFS.Objects;
 
 namespace Nixill.GTFS
 {
@@ -39,18 +42,29 @@ namespace Nixill.GTFS
         // We'll keep the whole thing so we can iterate over it multiple times
 
         // Get all agencies from the file
-        var agencies = from osmGeo in src
-                       where (osmGeo.Type == OsmSharp.OsmGeoType.Relation
-                         && osmGeo.Tags != null
-                         && osmGeo.Tags.Contains("type", "network"))
-                       select osmGeo;
+        var agencies = (from osmGeo in src
+                        where (osmGeo.Type == OsmSharp.OsmGeoType.Relation
+                          && osmGeo.Tags != null
+                          && osmGeo.Tags.Contains("type", "network"))
+                        select osmGeo).ToComplete();
 
         Grid<string> agencyGrid = new Grid<string>();
 
+        List<Agency> agencyList = new List<Agency>();
+
         foreach (var agency in agencies)
         {
-
+          agencyList.Add(new Agency((CompleteRelation)agency));
         }
+
+        agencyGrid.AddRow(Agency.GetHeaderRow());
+
+        foreach (Agency agency in agencyList)
+        {
+          agencyGrid.AddRow(agency.GetRow());
+        }
+
+        CSVParser.GridToFile(agencyGrid, "gtfs/agency.txt");
       }
     }
   }
