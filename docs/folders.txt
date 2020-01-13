@@ -1,0 +1,31 @@
+Working Directory/
+├─gtfs (created by 4; may pre-exist)
+│ └─[standard files of a gtfs file]
+├─shapes (created by 1/3, read by 4)
+│ └─[id]-shape.csv
+├─timer (created by 1)
+│ ├─debug
+│ │ └─[id]-debug.csv
+│ ├─stats.csv
+│ ├─timepoints.csv
+│ ├─trip-info.csv (read by 2)
+│ └─trips.csv (old - read by 2)
+├─timetable-headers (created by 1)
+│ └─[id]-head.csv
+├─timetable-skeletons (empty folder created by 1, read by 2)
+│ └─[rte]-[when]-[where].csv
+├─timetables (created by 2 or input of 3)
+│ └─[rte]-[when]-[where].csv
+├─trip-lengths (created by 1, read by 2)
+│ ├─[id]-length.csv
+│ └─[id]-stops.csv (old)
+├─trips-times (created by 2/3, read by 4)
+│ └─[rte]-triptimes.csv
+├─map.osm (exists at start, read by 1/3/4)
+└─output.gtfs (created by 4)
+
+├─
+│ └─
+│ │ └─
+│   └─
+│ ├─
