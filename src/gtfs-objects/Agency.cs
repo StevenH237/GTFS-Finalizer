@@ -14,7 +14,7 @@ namespace Nixill.GTFS.Objects
     public readonly Uri FareUrl;
     public readonly string Email;
 
-    public static TimeZoneInfo TimeZone { get; private set; }
+    public static string TimeZone { get; private set; }
     public static bool UsePhone { get; private set; } = false;
     public static bool UseFare { get; private set; } = false;
     public static bool UseEmail { get; private set; } = false;
@@ -61,10 +61,14 @@ namespace Nixill.GTFS.Objects
       Email = email;
     }
 
+    public static void SetTimeZone(string input)
+    {
+      TimeZone = input;
+    }
+
     public List<string> GetRow()
     {
-      List<string> ret = new List<string> { Name, Url.ToString(), TimeZone.ToString() };
-      if (UseID) ret.Insert(0, ID);
+      List<string> ret = new List<string> { ID, Name, Url.ToString(), TimeZone.ToString() };
       if (UseEmail) ret.Add(Email);
       if (UseFare) ret.Add(FareUrl.ToString());
       if (UsePhone) ret.Add(Phone);
@@ -74,8 +78,7 @@ namespace Nixill.GTFS.Objects
 
     public static List<string> GetHeaderRow()
     {
-      List<string> ret = new List<string> { "agency_name", "agency_url", "agency_timezone" };
-      if (UseID) ret.Insert(0, "agency_id");
+      List<string> ret = new List<string> { "agency_id", "agency_name", "agency_url", "agency_timezone" };
       if (UseEmail) ret.Add("agency_email");
       if (UseFare) ret.Add("agency_fare_url");
       if (UsePhone) ret.Add("agency_phone");

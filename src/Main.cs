@@ -33,20 +33,29 @@ namespace Nixill.GTFS
       Directory.CreateDirectory("shapes");
       Directory.CreateDirectory("trips-times");
 
-      // Open the map file
-      XmlOsmStreamSource src = null;
+      // Enter a timezone for the GTFS file
+      Console.Write("Enter a time zone for all agencies: ");
+      Agency.SetTimeZone(Console.ReadLine());
+
+      // Initialize lists of things
+      List<CompleteRelation> agencies = new List<CompleteRelation>();
+      List<ICompleteOsmGeo> stops = new List<ICompleteOsmGeo>();
 
       using (FileStream fileStream = File.OpenRead("map.osm"))
       {
-        src = new XmlOsmStreamSource(fileStream);
-        // We'll keep the whole thing so we can iterate over it multiple times
+        // Open the map file
+        XmlOsmStreamSource xmlSrc = new XmlOsmStreamSource(fileStream);
 
-        // Get all agencies from the file
-        var agencies = (from osmGeo in src
-                        where (osmGeo.Type == OsmSharp.OsmGeoType.Relation
-                          && osmGeo.Tags != null
-                          && osmGeo.Tags.Contains("type", "network"))
-                        select osmGeo).ToComplete();
+        // We'll keep the whole thing so we can iterate over it multiple times
+        var src = (from osmGeo in xmlSrc select osmGeo).ToComplete();
+
+        // Iterate through the file to get all the agencies
+        // Other things will be added later
+        foreach (var obj in src)
+        {
+          if (obj.Type == OsmGeoType.Relation && obj.Tags != null && obj.Tags.Contains("type", "network"))
+            agencies.Add((CompleteRelation)obj);
+        }
 
         Grid<string> agencyGrid = new Grid<string>();
 
@@ -54,7 +63,7 @@ namespace Nixill.GTFS
 
         foreach (var agency in agencies)
         {
-          agencyList.Add(new Agency((CompleteRelation)agency));
+          agencyList.Add(new Agency(agency));
         }
 
         agencyGrid.AddRow(Agency.GetHeaderRow());
