@@ -10,17 +10,13 @@ using Nixill.Collections.Grid;
 using Nixill.Collections.Grid.CSV;
 using Nixill.GTFS.Objects;
 
-namespace Nixill.GTFS
-{
-  public class FinalizerMain
-  {
-    static void Main(string[] args)
-    {
+namespace Nixill.GTFS {
+  public class FinalizerMain {
+    static void Main(string[] args) {
       string path = "";
 
       if (args.Length > 0) path = args[0];
-      else
-      {
+      else {
         Console.WriteLine("Current directory is " + Directory.GetCurrentDirectory());
         Console.Write("Enter a directory or leave blank for the above: ");
         path = Console.ReadLine();
@@ -28,21 +24,22 @@ namespace Nixill.GTFS
 
       if (path != "") Directory.SetCurrentDirectory(path);
 
+      // Get the configuration
+      Console.WriteLine("Reading config...");
+      Config.Load();
+
       // Make sure we have directories
+      Console.WriteLine("Creating folders...");
       Directory.CreateDirectory("gtfs");
       Directory.CreateDirectory("shapes");
       Directory.CreateDirectory("trips-times");
-
-      // Enter a timezone for the GTFS file
-      Console.Write("Enter a time zone for all agencies: ");
-      Agency.SetTimeZone(Console.ReadLine());
 
       // Initialize lists of things
       List<CompleteRelation> agencies = new List<CompleteRelation>();
       List<ICompleteOsmGeo> stops = new List<ICompleteOsmGeo>();
 
-      using (FileStream fileStream = File.OpenRead("map.osm"))
-      {
+      Console.WriteLine("Reading map file...");
+      using (FileStream fileStream = File.OpenRead("map.osm")) {
         // Open the map file
         XmlOsmStreamSource xmlSrc = new XmlOsmStreamSource(fileStream);
 
@@ -51,29 +48,28 @@ namespace Nixill.GTFS
 
         // Iterate through the file to get all the agencies
         // Other things will be added later
-        foreach (var obj in src)
-        {
-          if (obj.Type == OsmGeoType.Relation && obj.Tags != null && obj.Tags.Contains("type", "network"))
-            agencies.Add((CompleteRelation)obj);
+        foreach (var obj in src) {
+          if (obj.Tags != null) {
+            // Get agencies
+            if (obj.Type == OsmGeoType.Relation && obj.Tags.Contains("type", "network"))
+              agencies.Add((CompleteRelation)obj);
+            // Get routes
+            else if (obj.Type != OsmGeoType.Relation && obj.Tags.Contains("public_transport", "platform"))
+              stops.Add(obj);
+          }
         }
 
-        Grid<string> agencyGrid = new Grid<string>();
+        // Now make the agency file
+        Console.WriteLine("Found " + agencies.Count + " agency(ies).");
+        Console.WriteLine("Writing agency.txt...");
+        AgencyFile.Create(agencies);
+        Console.WriteLine("Done.");
 
-        List<Agency> agencyList = new List<Agency>();
-
-        foreach (var agency in agencies)
-        {
-          agencyList.Add(new Agency(agency));
-        }
-
-        agencyGrid.AddRow(Agency.GetHeaderRow());
-
-        foreach (Agency agency in agencyList)
-        {
-          agencyGrid.AddRow(agency.GetRow());
-        }
-
-        CSVParser.GridToFile(agencyGrid, "gtfs/agency.txt");
+        // Now make the stops file
+        Console.WriteLine("Found " + stops.Count + " stop(s).");
+        Console.WriteLine("Writing stops.txt...");
+        StopFile.Create(stops);
+        Console.WriteLine("Done.");
       }
     }
   }
