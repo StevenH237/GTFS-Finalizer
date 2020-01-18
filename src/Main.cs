@@ -13,6 +13,7 @@ using Nixill.GTFS.Objects;
 namespace Nixill.GTFS {
   public class FinalizerMain {
     static void Main(string[] args) {
+      /* TODO DO NOT FORGET TO PUT THIS BACK
       string path = "";
 
       if (args.Length > 0) path = args[0];
@@ -20,7 +21,9 @@ namespace Nixill.GTFS {
         Console.WriteLine("Current directory is " + Directory.GetCurrentDirectory());
         Console.Write("Enter a directory or leave blank for the above: ");
         path = Console.ReadLine();
-      }
+      } */
+
+      string path = @"C:\Users\Nixill\Documents\Git\NXS-GTFS";
 
       if (path != "") Directory.SetCurrentDirectory(path);
 
@@ -37,6 +40,7 @@ namespace Nixill.GTFS {
       // Initialize lists of things
       List<CompleteRelation> agencies = new List<CompleteRelation>();
       List<ICompleteOsmGeo> stops = new List<ICompleteOsmGeo>();
+      Dictionary<long, RouteRelation> routes = new Dictionary<long, RouteRelation>();
 
       Console.WriteLine("Reading map file...");
       using (FileStream fileStream = File.OpenRead("map.osm")) {
@@ -51,9 +55,11 @@ namespace Nixill.GTFS {
         foreach (var obj in src) {
           if (obj.Tags != null) {
             // Get agencies
+            // Routes are added within each agency
             if (obj.Type == OsmGeoType.Relation && obj.Tags.Contains("type", "network"))
               agencies.Add((CompleteRelation)obj);
-            // Get routes
+
+            // Get stops
             else if (obj.Type != OsmGeoType.Relation && obj.Tags.Contains("public_transport", "platform"))
               stops.Add(obj);
           }
@@ -62,13 +68,19 @@ namespace Nixill.GTFS {
         // Now make the agency file
         Console.WriteLine("Found " + agencies.Count + " agency(ies).");
         Console.WriteLine("Writing agency.txt...");
-        AgencyFile.Create(agencies);
+        AgencyFile.Create(agencies, routes);
         Console.WriteLine("Done.");
 
         // Now make the stops file
         Console.WriteLine("Found " + stops.Count + " stop(s).");
         Console.WriteLine("Writing stops.txt...");
         StopFile.Create(stops);
+        Console.WriteLine("Done.");
+
+        // Now make the routes file
+        Console.WriteLine("Found " + routes.Count + " route(s).");
+        Console.WriteLine("Writing routes.txt...");
+        RoutesFile.Create(routes.Values);
         Console.WriteLine("Done.");
       }
     }

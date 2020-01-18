@@ -36,11 +36,13 @@ namespace Nixill.GTFS.Objects {
       int type = 0;
       int wheelchairs = 0;
 
+      if (Config.StopIDTag == null) id = Util.OsmIDString(stop);
+
       foreach (Tag tag in stop.Tags) {
-        if (tag.Key == Config.StopIDTag) id = tag.Value;
+        if (tag.Key == Config.StopIDTag) id = Config.PatternExtract(tag.Value, Config.StopIDPattern);
 
         // Assign values to properties from tags
-        if (tag.Key == "name") name = tag.Value;
+        if (tag.Key == Config.StopNameTag) name = Config.PatternExtract(tag.Value, Config.StopNamePattern);
         else if (tag.Key.StartsWith("name:") && name == null) name = tag.Value;
         else if (tag.Key == "ref") code = tag.Value;
         else if (tag.Key == "website" || tag.Key == "contact:website") {

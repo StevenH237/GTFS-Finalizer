@@ -7,11 +7,11 @@ using OsmSharp.Tags;
 
 namespace Nixill.GTFS.Objects {
   public class AgencyFile {
-    public static void Create(List<CompleteRelation> agencies) {
+    public static void Create(List<CompleteRelation> agencies, Dictionary<long, RouteRelation> routes) {
       // For each network in the osm file, create a new Agency.
       List<Agency> agencyList = new List<Agency>();
       foreach (var agency in agencies) {
-        agencyList.Add(new Agency(agency));
+        agencyList.Add(new Agency(agency, routes));
       }
 
       // Create the output grid
@@ -41,10 +41,8 @@ namespace Nixill.GTFS.Objects {
     public static bool UsePhone { get; private set; } = false;
     public static bool UseFare { get; private set; } = false;
     public static bool UseEmail { get; private set; } = false;
-    public static bool UseID { get => AgencyCount > 1; }
-    private static int AgencyCount = 0;
 
-    public Agency(CompleteRelation rel) {
+    public Agency(CompleteRelation rel, Dictionary<long, RouteRelation> routes) {
       string name = null;
       string id = null;
       string url = null;
@@ -52,10 +50,12 @@ namespace Nixill.GTFS.Objects {
       string fareUrl = null;
       string email = null;
 
-      foreach (Tag tag in rel.Tags) {
-        if (tag.Key == Config.AgencyIDTag) id = tag.Value;
+      if (Config.AgencyIDTag == null) id = Util.OsmIDString(rel);
 
-        if (tag.Key == "name") name = tag.Value;
+      foreach (Tag tag in rel.Tags) {
+        if (tag.Key == Config.AgencyIDTag) id = Config.PatternExtract(tag.Value, Config.AgencyIDPattern);
+
+        if (tag.Key == Config.AgencyNameTag) name = Config.PatternExtract(tag.Value, Config.AgencyNamePattern);
         else if (tag.Key.StartsWith("name:") && name == null) name = tag.Value;
         else if (tag.Key == "website" || tag.Key == "contact:website") url = tag.Value;
         else if (tag.Key == "phone" || tag.Key == "contact:phone") {
@@ -78,6 +78,8 @@ namespace Nixill.GTFS.Objects {
       Phone = phone;
       FareUrl = fareUrl;
       Email = email;
+
+      AddRoutes(routes, this, rel);
     }
 
     public List<string> GetRow() {
@@ -96,6 +98,26 @@ namespace Nixill.GTFS.Objects {
       if (UsePhone) ret.Add("agency_phone");
 
       return ret;
+    }
+
+    public void AddRoutes(Dictionary<long, RouteRelation> routes, Agency agency, CompleteRelation aRel) {
+      int i = 0;
+      foreach (CompleteRelationMember mem in aRel.Members) {
+        i++; // yes, it'll start at 1 the first time around
+        if (mem.Member is CompleteRelation rel && rel.Tags != null && rel.Tags.Contains("type", "route_master")) {
+          if (routes.ContainsKey(rel.Id)) {
+            // Route is already listed
+            if (routes[rel.Id].Operates && (mem.Role != "operates")) {
+              // ... but is only "operated by" the agency it's listed under
+              routes[rel.Id] = new RouteRelation { ParentAgency = agency, Operates = false, Route = rel, Order = i };
+            }
+          }
+          else {
+            // Route isn't already listed
+            routes[rel.Id] = new RouteRelation { ParentAgency = agency, Operates = mem.Role == "operates", Route = rel, Order = i };
+          }
+        }
+      }
     }
   }
 }
