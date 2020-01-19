@@ -35,7 +35,8 @@ namespace Nixill.GTFS {
       Console.WriteLine("Creating folders...");
       Directory.CreateDirectory("gtfs");
       Directory.CreateDirectory("shapes");
-      Directory.CreateDirectory("trips-times");
+      Directory.CreateDirectory("trip-times");
+      Directory.CreateDirectory("trips");
 
       // Initialize lists of things
       List<CompleteRelation> agencies = new List<CompleteRelation>();
@@ -65,11 +66,15 @@ namespace Nixill.GTFS {
           }
         }
 
+        Console.WriteLine("");
+
         // Now make the agency file
         Console.WriteLine("Found " + agencies.Count + " agency(ies).");
         Console.WriteLine("Writing agency.txt...");
         AgencyFile.Create(agencies, routes);
         Console.WriteLine("Done.");
+
+        Console.WriteLine("");
 
         // Now make the stops file
         Console.WriteLine("Found " + stops.Count + " stop(s).");
@@ -77,10 +82,33 @@ namespace Nixill.GTFS {
         StopFile.Create(stops);
         Console.WriteLine("Done.");
 
+        Console.WriteLine("");
+
         // Now make the routes file
         Console.WriteLine("Found " + routes.Count + " route(s).");
         Console.WriteLine("Writing routes.txt...");
         RoutesFile.Create(routes.Values);
+        Console.WriteLine("Done.");
+
+        Console.WriteLine("");
+
+        // Now make the trips file
+        Console.WriteLine("Writing trips.txt by merging existing files...");
+        TripsFile.Create();
+        Console.WriteLine("Done.");
+
+        Console.WriteLine("");
+
+        // Now make the times file
+        Console.WriteLine("Writing stop_times.txt by merging existing files...");
+        TimesFile.Create();
+        Console.WriteLine("Done.");
+
+        Console.WriteLine("");
+
+        // Now make the trips file
+        Console.WriteLine("Writing shapes.txt by merging existing files...");
+        ShapesFile.Create();
         Console.WriteLine("Done.");
       }
     }
