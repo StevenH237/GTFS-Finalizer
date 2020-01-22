@@ -110,6 +110,13 @@ namespace Nixill.GTFS {
         Console.WriteLine("Writing shapes.txt by merging existing files...");
         ShapesFile.Create();
         Console.WriteLine("Done.");
+
+        Console.WriteLine("");
+
+        // Now the calendar files
+        Console.WriteLine("Writing calendar.txt and calendar_dates.txt...");
+        CalendarFile.Create();
+        Console.WriteLine("Done.");
       }
     }
   }

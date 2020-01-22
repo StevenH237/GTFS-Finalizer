@@ -44,7 +44,10 @@ namespace Nixill.GTFS.Objects {
         // Assign values to properties from tags
         if (tag.Key == Config.StopNameTag) name = Config.PatternExtract(tag.Value, Config.StopNamePattern);
         else if (tag.Key.StartsWith("name:") && name == null) name = tag.Value;
-        else if (tag.Key == "ref") code = tag.Value;
+        else if (tag.Key == "ref") {
+          code = tag.Value;
+          UseCodes = true;
+        }
         else if (tag.Key == "website" || tag.Key == "contact:website") {
           url = tag.Value;
           UseUrls = true;

@@ -1,7 +1,10 @@
+using System.Text;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Nixill.Collections;
 
 namespace Nixill.GTFS {
   public class Config {
@@ -20,6 +23,9 @@ namespace Nixill.GTFS {
     public static string AgencyNamePattern { get => Cfg?.Names?.Agency?.Pattern; }
     public static string RouteNamePattern { get => Cfg?.Names?.Route?.Pattern; }
     public static string StopNamePattern { get => Cfg?.Names?.Stop?.Pattern; }
+    public static List<Calendar> Calendars { get => Cfg?.Calendars; }
+    public static List<string> BlankCalendars { get => Cfg?.BlankCalendars; }
+    public static string Today = DateTime.Today.ToString("yyyyMMdd");
 
     public static void Load() {
       Cfg = JsonConvert.DeserializeObject<ConfigObject>(File.ReadAllText("settings.json"));
@@ -41,6 +47,8 @@ namespace Nixill.GTFS {
     public string TimeZone;
     public IDTagList IDs;
     public NameTagList Names;
+    public List<Calendar> Calendars;
+    public List<String> BlankCalendars;
   }
 
   public class IDTagList {
@@ -60,5 +68,18 @@ namespace Nixill.GTFS {
     public string Pattern;
 
     public static implicit operator TagInfo(string input) => new TagInfo { Tag = input };
+  }
+
+  public class Calendar {
+    public DateTime Start;
+    public DateTime End;
+    public string Monday;
+    public string Tuesday;
+    public string Wednesday;
+    public string Thursday;
+    public string Friday;
+    public string Saturday;
+    public string Sunday;
+    public Dictionary<DateTime, string> Exceptions;
   }
 }
